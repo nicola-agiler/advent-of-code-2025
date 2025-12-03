@@ -61,47 +61,62 @@ class Part2(Day3):
             )
         )
 
-    def has_n_more_digits_at_its_right(self,
+    def has_enough_digits_at_its_right(self,
         bank: str,
         position: int,
         required_digits_at_right: int) -> bool:
         return len(bank[position+1:]) >= required_digits_at_right
 
-    def compute_all_possible_joltages(self,
-        bank: str,
-        length: int) -> list[str] | None:
-
+    def valid_positions_of_max_digits(
+            self,
+            bank: str,
+            upper_bound: int,
+            joltage_length: int,
+            ) -> list[int]:
         positions_of_max_digit = []
-        upper_bound = 10
-
-        if length == 1:
-            return [self.max_digit_per_string(
-                string=bank,
-                upper_bound=upper_bound,)]
-
         while positions_of_max_digit == []:
-            max_digit = self.max_digit_per_string(
+            max_valid_digit_in_bank = self.max_digit_per_string(
                 string=bank,
                 upper_bound=upper_bound
             )
 
             positions_of_max_digit = [
                 i for i, digit in enumerate(bank)
-                if digit==max_digit and
-                self.has_n_more_digits_at_its_right(
-                    bank=bank,
-                    position=i,
-                    required_digits_at_right=length-1
-                )
+                if digit == max_valid_digit_in_bank and
+                   self.has_enough_digits_at_its_right(
+                       bank=bank,
+                       position=i,
+                       required_digits_at_right=joltage_length - 1
+                   )
             ]
             upper_bound -= 1
 
+        return positions_of_max_digit
+
+    def compute_all_possible_joltages(self,
+        bank: str,
+        joltage_length: int) -> list[str]:
+
+        upper_bound = 10
+
+        if joltage_length == 1:
+            return [self.max_digit_per_string(
+                string=bank,
+                upper_bound=upper_bound,)]
+
+        valid_positions_of_max_digit: list[int] = self.valid_positions_of_max_digits(
+            bank=bank,
+            upper_bound=upper_bound,
+            joltage_length=joltage_length,
+        )
+        max_digit: str = bank[valid_positions_of_max_digit[0]]
+
         all_suffixes = []
 
-        for position in positions_of_max_digit:
+        for position in valid_positions_of_max_digit:
             suffix_solutions = self.compute_all_possible_joltages(
                 bank=bank[position+1:],
-                length=length-1
+                joltage_length=joltage_length-1
             )
             all_suffixes.extend(suffix_solutions)
 
@@ -114,9 +129,9 @@ class Part2(Day3):
         for row in self.input:
             joltages_in_row = self.compute_all_possible_joltages(
                     bank=row,
-                    length=12
+                    joltage_length=12
                 )
-            print(joltages_in_row)
+            # print(joltages_in_row)
             max_joltage_in_row = max(
                 int(value) for value in joltages_in_row
             )
