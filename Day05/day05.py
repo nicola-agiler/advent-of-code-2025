@@ -47,7 +47,7 @@ class FreshItems():
     def tot_fresh_items(self) -> int:
         self.remove_overlaps()
         return sum(
-            [range.end - range.start + 1 for range in self.IDs_ranges]
+            range.end - range.start + 1 for range in self.IDs_ranges
         )
 
     def remove_overlaps(self) -> None:
@@ -82,8 +82,7 @@ class FreshItems():
             self,
             ID_range_a: ID_range,
             ID_range_b: ID_range) -> ID_range:
-
-            return ID_range(
-                min(ID_range_a.start, ID_range_b.start),
-                max(ID_range_a.end, ID_range_b.end)
-            )
+        return ID_range(
+            min(ID_range_a.start, ID_range_b.start),
+            max(ID_range_a.end, ID_range_b.end)
+        )
