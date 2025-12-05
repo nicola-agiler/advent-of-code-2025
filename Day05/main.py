@@ -23,7 +23,7 @@ def main():
 
 if __name__ == "__main__":
     logging.basicConfig(
-        level=logging.DEBUG,
+        level=logging.WARNING,
         format="%(message)s"
     )
 

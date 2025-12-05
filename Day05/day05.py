@@ -1,7 +1,4 @@
-from enum import Enum
-from collections.abc import Iterator
 from dataclasses import dataclass
-from itertools import combinations
 import logging
 
 logger = logging.getLogger(__name__)
@@ -48,37 +45,29 @@ class FreshItems():
             self.IDs_ranges.append(ID_range(start, end))
 
     def tot_fresh_items(self) -> int:
-        self.remove_all_overlaps()
+        self.remove_overlaps()
         return sum(
             [range.end - range.start + 1 for range in self.IDs_ranges]
         )
 
-    def remove_all_overlaps(self):
+    def remove_overlaps(self) -> None:
+        self.IDs_ranges.sort(key=lambda el: el.start)
         while True:
             found_merge = False
-            for i in range(len(self.IDs_ranges)):
-                for j in range(i + 1, len(self.IDs_ranges)):
-                    a = self.IDs_ranges[i]
-                    b = self.IDs_ranges[j]
-
-                    if self.are_disjoint_two_ranges(a, b):
-                        continue
-
-                    logger.debug("Merge found")
-                    merged_range = self.remove_overlaps_between_2_IDs_ranges(
-                        a, b
-                    )
-                    logger.debug(f"Resulting range: {[(r.start, r.end) for r in merged_range]}")
-
-                    del self.IDs_ranges[j]
-                    del self.IDs_ranges[i]
-
-                    self.IDs_ranges.extend(merged_range)
-                    logger.debug(f"Updated IDs: {[ (el.start, el.end) for el in self.IDs_ranges ]}")
-                    found_merge = True
-                    break
-                if found_merge:
-                    break
+            for i in range(len(self.IDs_ranges)-1):
+                a = self.IDs_ranges[i]
+                b = self.IDs_ranges[i+1]
+                if self.are_disjoint_two_ranges(a,b):
+                    continue
+                logger.debug("Merge found")
+                merged_range = self.merge_two_ranges(a,b)
+                logger.debug(f"Resulting range: {merged_range.start, merged_range.end}")
+                del self.IDs_ranges[i+1]
+                del self.IDs_ranges[i]
+                self.IDs_ranges.insert(i, merged_range)
+                logger.debug(f"Updated IDs: {[ (el.start, el.end) for el in self.IDs_ranges ]}")
+                found_merge = True
+                break
             if not found_merge:
                 break
 
@@ -89,30 +78,12 @@ class FreshItems():
         return (first_range.end < second_range.start
                 or second_range.end < first_range.start)
 
-    def remove_overlaps_between_2_IDs_ranges(
+    def merge_two_ranges(
             self,
             ID_range_a: ID_range,
-            ID_range_b: ID_range) -> list[ID_range]:
+            ID_range_b: ID_range) -> ID_range:
 
-        if self.are_disjoint_two_ranges(ID_range_a, ID_range_b):
-            return [ID_range_a, ID_range_b]
-        elif self.first_range_fully_contained_in_second(
-                ID_range_a, ID_range_b):
-            return [ID_range_b]
-        elif self.first_range_fully_contained_in_second(
-            ID_range_b, ID_range_a):
-            return [ID_range_a]
-        else:
-            return [ID_range(
+            return ID_range(
                 min(ID_range_a.start, ID_range_b.start),
                 max(ID_range_a.end, ID_range_b.end)
-            )]
-
-    def first_range_fully_contained_in_second(self,
-           first_range: ID_range,
-           second_range: ID_range
-           ) -> bool:
-        return (
-                first_range.start >= second_range.start
-                and first_range.end <= second_range.end
-        )
+            )
