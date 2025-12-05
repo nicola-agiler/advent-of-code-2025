@@ -19,4 +19,9 @@ def main():
     print("Part 2 result:", result_part_2)
 
 if __name__ == "__main__":
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format="%(message)s"
+    )
+
     main()
