@@ -54,31 +54,30 @@ class FreshItems():
         )
 
     def remove_all_overlaps(self):
+        self.sort_IDs()
         while True:
             found_merge = False
-            for i in range(len(self.IDs_ranges)):
-                for j in range(i + 1, len(self.IDs_ranges)):
-                    a = self.IDs_ranges[i]
-                    b = self.IDs_ranges[j]
+            for i in range(len(self.IDs_ranges)-1):
+                a = self.IDs_ranges[i]
+                b = self.IDs_ranges[i+1]
 
-                    if self.are_disjoint_two_ranges(a, b):
-                        continue
+                if self.are_disjoint_two_ranges(a, b):
+                    continue
 
-                    logger.debug("Merge found")
-                    merged_range = self.remove_overlaps_between_2_IDs_ranges(
-                        a, b
-                    )
-                    logger.debug(f"Resulting range: {[(r.start, r.end) for r in merged_range]}")
+                logger.debug("Merge found")
+                merged_range = self.remove_overlaps_between_2_IDs_ranges(
+                    a, b
+                )
+                logger.debug(f"Resulting range: {[(r.start, r.end) for r in merged_range]}")
 
-                    del self.IDs_ranges[j]
-                    del self.IDs_ranges[i]
+                del self.IDs_ranges[i+1]
+                del self.IDs_ranges[i]
+                self.IDs_ranges.insert(i, *merged_range)
 
-                    self.IDs_ranges.extend(merged_range)
-                    logger.debug(f"Updated IDs: {[ (el.start, el.end) for el in self.IDs_ranges ]}")
-                    found_merge = True
-                    break
-                if found_merge:
-                    break
+                logger.debug(f"Updated IDs: {[ (el.start, el.end) for el in self.IDs_ranges ]}")
+                found_merge = True
+                break
+
             if not found_merge:
                 break
 
@@ -116,3 +115,6 @@ class FreshItems():
                 first_range.start >= second_range.start
                 and first_range.end <= second_range.end
         )
+
+    def sort_IDs(self):
+        self.IDs_ranges.sort(key=lambda el: el.start)

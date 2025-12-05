@@ -1,6 +1,9 @@
 import pytest
 from day05 import *
-
+logging.basicConfig(
+        level=logging.DEBUG,
+        format="%(message)s"
+    )
 class TestFreshItems:
     def test_part_2(self):
         input_file = """
