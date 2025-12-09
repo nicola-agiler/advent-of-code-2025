@@ -1,4 +1,3 @@
-import pytest
 from day05 import *
 logging.basicConfig(
         level=logging.DEBUG,
