@@ -43,12 +43,64 @@ class Grid():
                       )
             )
 
+    # Part 1
     @cached_property
     def largest_possible_rectangles_area(self) -> int:
         rectangles_areas: list[int] = []
         for edge_1, edge_2 in combinations(self.edges, 2):
             rectangles_areas.append(Rectangle(edge_1, edge_2).area)
         return max(rectangles_areas)
+
+    # Part 2
+    @cached_property
+    def largest_area_constrained(self) -> int:
+        all_combos = sorted(combinations(self.edges, 2),
+                            key=lambda p: Rectangle(*p).area,
+                            reverse=True)
+        for (e1, e2) in tqdm(all_combos, desc="Rectangles"):
+            rect = Rectangle(e1, e2)
+            if self.rectangle_in_area(rect):
+                return rect.area
+        return 0
+
+    def rectangle_in_area(self, rect: Rectangle) -> bool:
+        # Early reject sui vertici
+        if (
+                not self.point_in_area(rect.x1, rect.y1) or
+                not self.point_in_area(rect.x1, rect.y2) or
+                not self.point_in_area(rect.x2, rect.y1) or
+                not self.point_in_area(rect.x2, rect.y2)
+        ):
+            return False
+        # Controlla lato sinistro e destro
+        for y in range(rect.y1, rect.y2 + 1):
+            if not self.point_in_area(rect.x1, y): return False
+            if not self.point_in_area(rect.x2, y): return False
+        # Controlla lato superiore e inferiore
+        for x in range(rect.x1, rect.x2 + 1):
+            if not self.point_in_area(x, rect.y1): return False
+            if not self.point_in_area(x, rect.y2): return False
+        return True
+
+    def point_in_area(self, x: int, y: int) -> bool:
+        if self.point_on_perimeter(x, y):
+            return True
+        crossings = 0
+        for seg in self.vertical_segments:
+            if x < seg.x and seg.y_start<=y<seg.y_end:
+                crossings += 1
+        return (crossings % 2) == 1
+
+    def point_on_perimeter(self, x:int, y: int) -> bool:
+        for segment in self.vertical_segments:
+            if (x == segment.x and
+                segment.y_start <= y <= segment.y_end):
+                return True
+        for segment in self.horizontal_segments:
+            if (y == segment.x and
+             segment.y_start <= x <= segment.y_end):
+                return True
+        return False
 
     @cached_property
     def vertical_segments(self) -> list[Segment]:
@@ -77,59 +129,3 @@ class Grid():
                     )
                 )
         return segments
-
-    def point_on_perimeter(self, x:int, y: int) -> bool:
-        for segment in self.vertical_segments:
-            if (x == segment.x and
-                segment.y_start <= y <= segment.y_end):
-                return True
-        for segment in self.horizontal_segments:
-            if (y == segment.x and
-             segment.y_start <= x <= segment.y_end):
-                return True
-        return False
-
-    def point_in_area(self, x: int, y: int) -> bool:
-        if self.point_on_perimeter(x, y):
-            return True
-
-        crossings = 0
-        for seg in self.vertical_segments:
-            if x < seg.x and seg.y_start<=y<seg.y_end:
-                crossings += 1
-
-        return (crossings % 2) == 1
-
-    def rectangle_in_area(self, rect: Rectangle) -> bool:
-
-        # Early reject sui vertici
-        if (
-                not self.point_in_area(rect.x1, rect.y1) or
-                not self.point_in_area(rect.x1, rect.y2) or
-                not self.point_in_area(rect.x2, rect.y1) or
-                not self.point_in_area(rect.x2, rect.y2)
-        ):
-            return False
-
-        # Controlla lato sinistro e destro
-        for y in range(rect.y1, rect.y2 + 1):
-            if not self.point_in_area(rect.x1, y): return False
-            if not self.point_in_area(rect.x2, y): return False
-
-        # Controlla lato superiore e inferiore
-        for x in range(rect.x1, rect.x2 + 1):
-            if not self.point_in_area(x, rect.y1): return False
-            if not self.point_in_area(x, rect.y2): return False
-
-        return True
-
-    @cached_property
-    def largest_area_constrained(self) -> int:
-        all_combos = sorted(combinations(self.edges, 2),
-                               key=lambda p: Rectangle(*p).area,
-                               reverse=True)
-        for (e1, e2) in tqdm(all_combos, desc="Rectangles"):
-            rect = Rectangle(e1, e2)
-            if self.rectangle_in_area(rect):
-                return rect.area
-        return 0
