@@ -9,15 +9,18 @@ def main():
     grid = Grid(input_file=input_file)
 
     start = time.perf_counter()
-    part_1_result = grid.all_possible_rectangles_areas
+    part_1_result = grid.largest_possible_rectangles_area
     end = time.perf_counter()
     print("Part 1 result: ", part_1_result)
     print(f"Part 1 time: {(end - start):.3f} s")
 
-if __name__ == "__main__":
-    logging.basicConfig(
-        level=logging.WARNING,
-        format="%(message)s"
-    )
+    print("Part 2")
+    start = time.perf_counter()
+    part2_result = grid.largest_area_constrained
+    end = time.perf_counter()
+    print("Part 2 result: ", part2_result)
+    print(f"Part 2 time: {(end - start):.3f} s")
 
+
+if __name__ == "__main__":
     main()
